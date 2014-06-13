@@ -56,7 +56,7 @@ void printlist(struct Node *head) {
 void reverselist(struct Node **head) {
     struct Node *prev = NULL;
     struct Node *curr = *head;
-    struct Node *next;
+    struct Node *next = NULL;
     
     if (head == NULL)
         return;
@@ -132,7 +132,7 @@ int iskeyboardchar(char c) {
 
 int main(int argc, char **argv) {
 	FILE *file;
-	struct Node *list;
+	struct Node *list = NULL;
 	char temp_c;
 	int temp_read;
 	int numofchars = 0;
