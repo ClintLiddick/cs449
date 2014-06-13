@@ -25,7 +25,8 @@ struct Node *addNode(struct Node *head, char _c) {
 }
 
 // depends on next in last struct Node in list pointing to NULL
-void destroyList(struct Node **head) {
+// TODO verify with valgrind
+void destroylist(struct Node **head) {
 	struct Node *curr;
 	struct Node *next;
 
@@ -110,7 +111,7 @@ int runtest() {
     if (succ != 0)
         printf("failure!");
     printf("%s",str);
-	destroyList(&head);
+	destroylist(&head);
 	head = NULL;
 	return 0;
 }
