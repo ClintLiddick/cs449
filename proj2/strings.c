@@ -13,7 +13,8 @@ struct Node {
 	struct Node *next;
 };
 
-struct Node *addNode(struct Node *head, char _c) {
+// TODO change to double pointer head
+struct Node *add_node(struct Node *head, char _c) {
 	struct Node *newHead = (struct Node*) malloc(sizeof(struct Node));
 	newHead->c = _c;
 	if (head != NULL)
@@ -29,6 +30,9 @@ struct Node *addNode(struct Node *head, char _c) {
 void destroylist(struct Node **head) {
 	struct Node *curr;
 	struct Node *next;
+	
+	if( *head == NULL)
+		return;
 
 	curr = *head;
 	*head = NULL; // delete head pointer
@@ -46,6 +50,7 @@ void printlist(struct Node *head) {
 		printf("%c",head->c);
 		head = head->next;
 	}
+	printf("\n");
 }
 
 void reverselist(struct Node **head) {
@@ -96,7 +101,7 @@ int runtest() {
 			if (tempgrade == '!') {
 				break;
 			} else {
-				head = addNode(head,tempgrade);
+				head = add_node(head,tempgrade);
 			}
 		} else {
 			printf("error reading grade");
@@ -116,11 +121,21 @@ int runtest() {
 	return 0;
 }
 
+int iskeyboardchar(char c) {
+	int result = 0;
+	if (c >= ' ' && c <= '~')
+		result = 1;
+	
+	return result;
+}
+
 
 int main(int argc, char **argv) {
-    /* FILE file;
-    char temp;
-    struct Node *list;
+	FILE *file;
+	struct Node *list;
+	char temp_c;
+	int temp_read;
+	int numofchars = 0;
     
     if (argc != 2) {
         printf("usage: strings <filename>");
@@ -131,11 +146,31 @@ int main(int argc, char **argv) {
     if (file == NULL) {
         printf("unable to open file: %s",argv[1]);
         return 1;
-    } */
-    runtest();
+    }
+    
+    while (!feof(file)) {
+        temp_read = fread(&temp_c,1,1,file); // read single char (byte)
+		if (temp_read == 1 && iskeyboardchar(temp_c)) {
+			list = add_node(list,temp_c);
+			++numofchars;
+		} else if ( numofchars >= 4) {
+			reverselist(&list);
+			printlist(list);
+			destroylist(&list);
+			numofchars = 0;
+		}
+    }
+	
+	if (numofchars >= 4) { // print remaining string at EOF
+		reverselist(&list);
+		printlist(list);
+		destroylist(&list);
+	}
+	
+	fclose(file);
+	destroylist(&list);
+
     return 0;
-    
-    
 }
 
 
