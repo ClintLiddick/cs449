@@ -143,17 +143,18 @@ Disassembly of section .text:
  80484a2:	c3                   	ret    
  80484a3:	90                   	nop
 
+// strlen(char *)
 080484a4 <s>:
  80484a4:	55                   	push   %ebp
  80484a5:	89 e5                	mov    %esp,%ebp
- 80484a7:	8b 55 08             	mov    0x8(%ebp),%edx
- 80484aa:	b8 00 00 00 00       	mov    $0x0,%eax
- 80484af:	80 3a 00             	cmpb   $0x0,(%edx)
+ 80484a7:	8b 55 08             	mov    0x8(%ebp),%edx	 // param: edx
+ 80484aa:	b8 00 00 00 00       	mov    $0x0,%eax	 // eax = null
+ 80484af:	80 3a 00             	cmpb   $0x0,(%edx)	 // if edx != null {
  80484b2:	74 09                	je     80484bd <s+0x19>
- 80484b4:	83 c0 01             	add    $0x1,%eax
- 80484b7:	80 3c 02 00          	cmpb   $0x0,(%edx,%eax,1)
+ 80484b4:	83 c0 01             	add    $0x1,%eax	 // do: eax++
+ 80484b7:	80 3c 02 00          	cmpb   $0x0,(%edx,%eax,1)// while (edx[eax] != \0);
  80484bb:	75 f7                	jne    80484b4 <s+0x10>
- 80484bd:	5d                   	pop    %ebp
+ 80484bd:	5d                   	pop    %ebp 		// }
  80484be:	c3                   	ret    
 
 080484bf <c>:
@@ -162,12 +163,12 @@ Disassembly of section .text:
  80484c2:	53                   	push   %ebx
  80484c3:	83 ec 04             	sub    $0x4,%esp
  80484c6:	8b 5d 08             	mov    0x8(%ebp),%ebx
- 80484c9:	85 db                	test   %ebx,%ebx
- 80484cb:	74 28                	je     80484f5 <c+0x36>
+ 80484c9:	85 db                	test   %ebx,%ebx	// zf = ebz == 0? 1:0
+ 80484cb:	74 28                	je     80484f5 <c+0x36>	// jump if ebx == 0
  80484cd:	89 1c 24             	mov    %ebx,(%esp)
- 80484d0:	e8 cf ff ff ff       	call   80484a4 <s>
+ 80484d0:	e8 cf ff ff ff       	call   80484a4 <s>	// eax = strlen(param)
  80484d5:	85 c0                	test   %eax,%eax
- 80484d7:	7e 1c                	jle    80484f5 <c+0x36>
+ 80484d7:	7e 1c                	jle    80484f5 <c+0x36> // jump if eax == 0
  80484d9:	89 1c 24             	mov    %ebx,(%esp)
  80484dc:	e8 c3 ff ff ff       	call   80484a4 <s>
  80484e1:	80 7c 03 ff 0a       	cmpb   $0xa,-0x1(%ebx,%eax,1)
@@ -175,11 +176,12 @@ Disassembly of section .text:
  80484e8:	89 1c 24             	mov    %ebx,(%esp)
  80484eb:	e8 b4 ff ff ff       	call   80484a4 <s>
  80484f0:	c6 44 03 ff 00       	movb   $0x0,-0x1(%ebx,%eax,1)
- 80484f5:	83 c4 04             	add    $0x4,%esp
+ 80484f5:	83 c4 04             	add    $0x4,%esp	// start here?
  80484f8:	5b                   	pop    %ebx
  80484f9:	5d                   	pop    %ebp
  80484fa:	c3                   	ret    
 
+???? <r>(char *,????)
 080484fb <r>:
 // prologue
  80484fb:	55                   	push   %ebp
@@ -188,25 +190,22 @@ Disassembly of section .text:
  80484ff:	56                   	push   %esi
  8048500:	53                   	push   %ebx
  8048501:	83 ec 08             	sub    $0x8,%esp
- 8048504:	8b 7d 08             	mov    0x8(%ebp),%edi // edi = param
- 8048507:	0f b6 45 0c          	movzbl 0xc(%ebp),%eax // eax = param
- 804850b:	88 45 f3             	mov    %al,-0xd(%ebp)
- 804850e:	89 3c 24             	mov    %edi,(%esp)
- 8048511:	e8 8e ff ff ff       	call   80484a4 <s>
- 8048516:	8d 5c 07 ff          	lea    -0x1(%edi,%eax,1),%ebx
- 804851a:	be 00 00 00 00       	mov    $0x0,%esi
- 804851f:	eb 12                	jmp    8048533 <r+0x38>
- 8048521:	0f b6 45 f3          	movzbl -0xd(%ebp),%eax
- 8048525:	38 03                	cmp    %al,(%ebx)
- 8048527:	75 04                	jne    804852d <r+0x32>
- 8048529:	89 d8                	mov    %ebx,%eax
- 804852b:	eb 12                	jmp    804853f <r+0x44>
- 804852d:	83 eb 01             	sub    $0x1,%ebx
- 8048530:	83 c6 01             	add    $0x1,%esi
- 8048533:	89 3c 24             	mov    %edi,(%esp)
- 8048536:	e8 69 ff ff ff       	call   80484a4 <s>
- 804853b:	39 c6                	cmp    %eax,%esi
- 804853d:	7c e2                	jl     8048521 <r+0x26>
+ 8048504:	8b 7d 08             	mov    0x8(%ebp),%edi 	// edi = param1
+ 8048507:	0f b6 45 0c          	movzbl 0xc(%ebp),%eax 	// eax = 000param2
+ 804850b:	88 45 f3             	mov    %al,-0xd(%ebp)	// -0xd(ebp) = lower(eax)
+ 804850e:	89 3c 24             	mov    %edi,(%esp)	// param: edi
+ 8048511:	e8 8e ff ff ff       	call   80484a4 <s> 	// eax = strlen(edi)
+ 8048516:	8d 5c 07 ff          	lea    -0x1(%edi,%eax,1),%ebx // ebx = address of last char edi
+ 804851a:	be 00 00 00 00       	mov    $0x0,%esi	// esi = 0
+ 804851f:	eb 12                	jmp    8048533 <r+0x38> // skip 3 lines
+ 8048521:	0f b6 45 f3          	movzbl -0xd(%ebp),%eax  // eax = lower(param2, 47?) 
+ 804852d:	83 eb 01             	sub    $0x1,%ebx	// ebx--, ebx = char previous
+ 8048530:	83 c6 01             	add    $0x1,%esi	// esi++
+ 8048533:	89 3c 24             	mov    %edi,(%esp)	// param: edi
+ 8048536:	e8 69 ff ff ff       	call   80484a4 <s>	// eax = strlen(edi)
+ 804853b:	39 c6                	cmp    %eax,%esi	
+ 804853d:	7c e2                	jl     8048521 <r+0x26> // if eax < esi goto movzbl
+// epilogue
  804853f:	83 c4 08             	add    $0x8,%esp
  8048542:	5b                   	pop    %ebx
  8048543:	5e                   	pop    %esi
@@ -224,23 +223,23 @@ Disassembly of section .text:
  8048553:	89 9c 24 e4 00 00 00 	mov    %ebx,0xe4(%esp)
  804855a:	89 b4 24 e8 00 00 00 	mov    %esi,0xe8(%esp)
  8048561:	89 bc 24 ec 00 00 00 	mov    %edi,0xec(%esp)
-// param: 47
+// param2: 47
  8048568:	c7 44 24 04 2f 00 00 	movl   $0x2f,0x4(%esp)
  804856f:	00 
-// param: *0xc(%ebp)
+// param1: *0xc(%ebp)
  8048570:	8b 45 0c             	mov    0xc(%ebp),%eax
  8048573:	8b 00                	mov    (%eax),%eax
  8048575:	89 04 24             	mov    %eax,(%esp)
- 8048578:	e8 7e ff ff ff       	call   80484fb <r> // char* <r>(int,???) // prints prog name to screen?
- 804857d:	89 c6                	mov    %eax,%esi 
- 804857f:	a1 d4 98 04 08       	mov    0x80498d4,%eax
- 8048584:	89 44 24 08          	mov    %eax,0x8(%esp)
- 8048588:	c7 44 24 04 64 00 00 	movl   $0x64,0x4(%esp)
+ 8048578:	e8 7e ff ff ff       	call   80484fb <r> // char* <r>(int,???) 
+ 804857d:	89 c6                	mov    %eax,%esi   // esi = strlen(param1)
+ 804857f:	a1 d4 98 04 08       	mov    0x80498d4,%eax	// eax = const
+ 8048584:	89 44 24 08          	mov    %eax,0x8(%esp)	// param3 = const
+ 8048588:	c7 44 24 04 64 00 00 	movl   $0x64,0x4(%esp)	// param2 = 100
  804858f:	00 
- 8048590:	8d 5c 24 7c          	lea    0x7c(%esp),%ebx
- 8048594:	89 1c 24             	mov    %ebx,(%esp)
+ 8048590:	8d 5c 24 7c          	lea    0x7c(%esp),%ebx	
+ 8048594:	89 1c 24             	mov    %ebx,(%esp)	// param1 = ptr(0x7c+esp): 0x7c = input!
  8048597:	e8 ec fd ff ff       	call   8048388 <fgets@plt>
- 804859c:	89 1c 24             	mov    %ebx,(%esp)
+ 804859c:	89 1c 24             	mov    %ebx,(%esp) 	// param1 = user input
  804859f:	e8 1b ff ff ff       	call   80484bf <c>
  80485a4:	89 5c 24 04          	mov    %ebx,0x4(%esp)
  80485a8:	8d 5c 24 18          	lea    0x18(%esp),%ebx
