@@ -157,25 +157,26 @@ Disassembly of section .text:
  80484bd:	5d                   	pop    %ebp 		// }
  80484be:	c3                   	ret    
 
+// nullify_newline(char *)
 080484bf <c>:
  80484bf:	55                   	push   %ebp
  80484c0:	89 e5                	mov    %esp,%ebp
  80484c2:	53                   	push   %ebx
  80484c3:	83 ec 04             	sub    $0x4,%esp
- 80484c6:	8b 5d 08             	mov    0x8(%ebp),%ebx
+ 80484c6:	8b 5d 08             	mov    0x8(%ebp),%ebx	// ebx = param
  80484c9:	85 db                	test   %ebx,%ebx	// zf = ebz == 0? 1:0
- 80484cb:	74 28                	je     80484f5 <c+0x36>	// jump if ebx == 0
+ 80484cb:	74 28                	je     80484f5 <c+0x36>	// return if ebx == 0
  80484cd:	89 1c 24             	mov    %ebx,(%esp)
  80484d0:	e8 cf ff ff ff       	call   80484a4 <s>	// eax = strlen(param)
  80484d5:	85 c0                	test   %eax,%eax
- 80484d7:	7e 1c                	jle    80484f5 <c+0x36> // jump if eax == 0
- 80484d9:	89 1c 24             	mov    %ebx,(%esp)
- 80484dc:	e8 c3 ff ff ff       	call   80484a4 <s>
+ 80484d7:	7e 1c                	jle    80484f5 <c+0x36> // return if eax == 0
+ 80484d9:	89 1c 24             	mov    %ebx,(%esp)	// param1: ebx, param
+ 80484dc:	e8 c3 ff ff ff       	call   80484a4 <s>	// eax = strlen(param)
  80484e1:	80 7c 03 ff 0a       	cmpb   $0xa,-0x1(%ebx,%eax,1)
- 80484e6:	75 0d                	jne    80484f5 <c+0x36>
+ 80484e6:	75 0d                	jne    80484f5 <c+0x36>	// if (last char param != \n) return
  80484e8:	89 1c 24             	mov    %ebx,(%esp)
  80484eb:	e8 b4 ff ff ff       	call   80484a4 <s>
- 80484f0:	c6 44 03 ff 00       	movb   $0x0,-0x1(%ebx,%eax,1)
+ 80484f0:	c6 44 03 ff 00       	movb   $0x0,-0x1(%ebx,%eax,1) // set param last char = \0
  80484f5:	83 c4 04             	add    $0x4,%esp	// start here?
  80484f8:	5b                   	pop    %ebx
  80484f9:	5d                   	pop    %ebp
@@ -239,32 +240,36 @@ Disassembly of section .text:
  8048590:	8d 5c 24 7c          	lea    0x7c(%esp),%ebx	
  8048594:	89 1c 24             	mov    %ebx,(%esp)	// param1 = ptr(0x7c+esp): 0x7c = input!
  8048597:	e8 ec fd ff ff       	call   8048388 <fgets@plt>
+
  804859c:	89 1c 24             	mov    %ebx,(%esp) 	// param1 = user input
- 804859f:	e8 1b ff ff ff       	call   80484bf <c>
- 80485a4:	89 5c 24 04          	mov    %ebx,0x4(%esp)
- 80485a8:	8d 5c 24 18          	lea    0x18(%esp),%ebx
+ 804859f:	e8 1b ff ff ff       	call   80484bf <c> 	// nullify_newline(param1)
+
+ 80485a4:	89 5c 24 04          	mov    %ebx,0x4(%esp)	// src: user input
+ 80485a8:	8d 5c 24 18          	lea    0x18(%esp),%ebx	// dest: 0x18(esp) location 
  80485ac:	89 1c 24             	mov    %ebx,(%esp)
- 80485af:	e8 f4 fd ff ff       	call   80483a8 <strcpy@plt>
- 80485b4:	89 df                	mov    %ebx,%edi
- 80485b6:	b8 00 00 00 00       	mov    $0x0,%eax
- 80485bb:	b9 ff ff ff ff       	mov    $0xffffffff,%ecx
- 80485c0:	f2 ae                	repnz scas %es:(%edi),%al
- 80485c2:	f7 d1                	not    %ecx
- 80485c4:	8d 44 0b ff          	lea    -0x1(%ebx,%ecx,1),%eax
- 80485c8:	66 c7 00 5f 32       	movw   $0x325f,(%eax)
- 80485cd:	c6 40 02 00          	movb   $0x0,0x2(%eax)
- 80485d1:	83 c6 01             	add    $0x1,%esi
- 80485d4:	89 74 24 04          	mov    %esi,0x4(%esp)
- 80485d8:	89 1c 24             	mov    %ebx,(%esp)
+ 80485af:	e8 f4 fd ff ff       	call   80483a8 <strcpy@plt> // strcpy
+
+ 80485b4:	89 df                	mov    %ebx,%edi	// edi = user input ptr
+ 80485b6:	b8 00 00 00 00       	mov    $0x0,%eax	// eax = 0
+ 80485bb:	b9 ff ff ff ff       	mov    $0xffffffff,%ecx // ecx = MAX
+ 80485c0:	f2 ae                	repnz scas %es:(%edi),%al // scan str looking for %al, ecx--
+ 80485c2:	f7 d1                	not    %ecx		// get positive count from countdown
+ 80485c4:	8d 44 0b ff          	lea    -0x1(%ebx,%ecx,1),%eax // point eax to %al char in str 
+ 80485c8:	66 c7 00 5f 32       	movw   $0x325f,(%eax)	// set that char and after to "2_"
+ 80485cd:	c6 40 02 00          	movb   $0x0,0x2(%eax)	// set char after "2_" to \0
+ 80485d1:	83 c6 01             	add    $0x1,%esi	// delete first char from esi
+
+ 80485d4:	89 74 24 04          	mov    %esi,0x4(%esp)	// param2: esi str
+ 80485d8:	89 1c 24             	mov    %ebx,(%esp)	// param1: user input w/ subs
  80485db:	e8 f8 fd ff ff       	call   80483d8 <strcmp@plt>
- 80485e0:	85 c0                	test   %eax,%eax
- 80485e2:	75 16                	jne    80485fa <main+0xb3>
- 80485e4:	8d 44 24 7c          	lea    0x7c(%esp),%eax
+ 80485e0:	85 c0                	test   %eax,%eax // zf = eax == 0? 1:0
+ 80485e2:	75 16                	jne    80485fa <main+0xb3> // jump if zf == 0 (cmp != 0, no match)
+ 80485e4:	8d 44 24 7c          	lea    0x7c(%esp),%eax		// if (strcmp == 0) {
  80485e8:	89 44 24 04          	mov    %eax,0x4(%esp)
  80485ec:	c7 04 24 e4 86 04 08 	movl   $0x80486e4,(%esp)
  80485f3:	e8 c0 fd ff ff       	call   80483b8 <printf@plt>
  80485f8:	eb 0c                	jmp    8048606 <main+0xbf>
- 80485fa:	c7 04 24 14 87 04 08 	movl   $0x8048714,(%esp)
+ 80485fa:	c7 04 24 14 87 04 08 	movl   $0x8048714,(%esp)	//} else {
  8048601:	e8 c2 fd ff ff       	call   80483c8 <puts@plt>
  8048606:	8b 9c 24 e4 00 00 00 	mov    0xe4(%esp),%ebx
  804860d:	8b b4 24 e8 00 00 00 	mov    0xe8(%esp),%esi
