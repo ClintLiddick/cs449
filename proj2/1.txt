@@ -1,4 +1,0 @@
-EhkyRldrbhUuaSlphYTJXdRjJV
-
-found by x/s examining global address 0x80b316c to %esi, and used in a string compare
-"repz cmpsb" with the user inputted line

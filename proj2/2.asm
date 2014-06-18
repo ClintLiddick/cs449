@@ -255,8 +255,8 @@ Disassembly of section .text:
  80485c0:	f2 ae                	repnz scas %es:(%edi),%al // scan str looking for %al, ecx--
  80485c2:	f7 d1                	not    %ecx		// get positive count from countdown
  80485c4:	8d 44 0b ff          	lea    -0x1(%ebx,%ecx,1),%eax // point eax to %al char in str 
- 80485c8:	66 c7 00 5f 32       	movw   $0x325f,(%eax)	// set that char and after to "2_"
- 80485cd:	c6 40 02 00          	movb   $0x0,0x2(%eax)	// set char after "2_" to \0
+ 80485c8:	66 c7 00 5f 32       	movw   $0x325f,(%eax)	// set that char and after to "_2"
+ 80485cd:	c6 40 02 00          	movb   $0x0,0x2(%eax)	// set char after "_2" to \0
  80485d1:	83 c6 01             	add    $0x1,%esi	// delete first char from esi
 
  80485d4:	89 74 24 04          	mov    %esi,0x4(%esp)	// param2: esi str

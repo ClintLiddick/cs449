@@ -1,0 +1,12 @@
+cwl12_1 solution:
+EhkyRldrbhUuaSlphYTJXdRjJV
+
+found by x/s examining global address 0x80b316c assigned to %esi, and used in a string compare
+"repz cmpsb" with the user inputted line
+
+cwl12_2 solution:
+cwl12
+
+found by following the <s>/<r> functions (strlen), <c> function that replaces newline with \0,
+and user input string alterations: replacing \0 with "_2", appending a new '\0', and strcmp
+with an internal string (still not sure where esi was assigned, unless <r> didn't return strlen)
