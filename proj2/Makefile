@@ -1,8 +1,8 @@
 # Clint Liddick's reusable makefile
 CC=gcc
 CFLAGS=-Wall -o
-FILES=strings.c
-OUT_EXE=strings
+FILES=mystrings.c
+OUT_EXE=mystrings
 
 build: $(FILES)
 	$(CC) $(CFLAGS) $(OUT_EXE) $(FILES)

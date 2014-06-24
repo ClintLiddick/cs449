@@ -1,5 +1,5 @@
 /*
- * strings.c
+ * mystrings.c
  *
  *  Created on: Jun 12, 2014
  *      Author: Clinton Liddik
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
 	int numofchars = 0;
     
     if (argc != 2) {
-        printf("usage: strings <filename>\n");
+        printf("usage: mystrings <filename>\n");
         return 1;
     }
     

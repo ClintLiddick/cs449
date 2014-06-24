@@ -1,8 +1,8 @@
-strings
+mystrings
 
 author: Clint Liddick
 
-usage: strings <filename>
+usage: mystrings <filename>
 
 function:
 prints all keyboard-typable strings of 4 or more characters
