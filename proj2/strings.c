@@ -85,42 +85,6 @@ int list_to_str(char **dest, struct Node *src, int len) {
     return 0;
 }
 
-int runtest() {
-    struct Node *head = NULL;
-	char tempgrade;
-	char parsedgrades;
-	char tempstr[3];
-    char *str;
-    
-    int succ;
-    
-	printf("enter grades or ! to finish: ");
-	while (fgets(tempstr,sizeof(tempstr),stdin) != NULL) {
-		parsedgrades = sscanf(tempstr,"%c",&tempgrade);
-		if (parsedgrades == 1) {
-			if (tempgrade == '!') {
-				break;
-			} else {
-				head = add_node(head,tempgrade);
-			}
-		} else {
-			printf("error reading grade");
-		}
-	}
-	printlist(head);
-    printf("\n");
-    reverselist(&head);
-    printlist(head);
-    printf("\n");
-    succ = list_to_str(&str,head,4);
-    if (succ != 0)
-        printf("failure!");
-    printf("%s",str);
-	destroylist(&head);
-	head = NULL;
-	return 0;
-}
-
 int iskeyboardchar(char c) {
 	int result = 0;
 	if (c >= ' ' && c <= '~')
@@ -138,13 +102,13 @@ int main(int argc, char **argv) {
 	int numofchars = 0;
     
     if (argc != 2) {
-        printf("usage: strings <filename>");
+        printf("usage: strings <filename>\n");
         return 1;
     }
     
     file = fopen(argv[1],"rt");
     if (file == NULL) {
-        printf("unable to open file: %s",argv[1]);
+        printf("unable to open file: %s\n",argv[1]);
         return 1;
     }
     
