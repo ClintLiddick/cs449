@@ -1,12 +1,27 @@
 cwl12_1 solution:
 EhkyRldrbhUuaSlphYTJXdRjJV
 
-found by x/s examining global address 0x80b316c assigned to %esi, and used in a string compare
-"repz cmpsb" with the user inputted line
+Found by x/s examining global address 0x80b316c assigned to %esi, and used in
+a string compare "repz cmpsb" with the user inputted line
 
 cwl12_2 solution:
 cwl12
 
-found by following the <s>/<r> functions (strlen), <c> function that replaces newline with \0,
-and user input string alterations: replacing \0 with "_2", appending a new '\0', and strcmp
-with an internal string (still not sure where esi was assigned, unless <r> didn't return strlen)
+Found by following the <s>/<r> functions (strlen), <c> function that 
+replaces newline with \0, and user input string alterations: replacing \0 
+with "_2", appending a new '\0', and strcmp with an internal string (still 
+not sure where esi was assigned, unless <r> didn't return strlen)
+
+cwl12_3 solution:
+!!!!!!!!!!
+Or any combination of 10 of the following:
+[!#$%&()*@^]
+
+Two counters in the program serve to divide the 10 input chars into 2 groups,
+one group satisfies the equation (asciival - 33) = [0,2,3,4,5,7,8,9,31,61]
+and increments the second counter, any other value increments the first
+counter (either by indexing to a jump to increments it, or if (val-33) > 61).
+The index is multiplied by 4 to access full word (4 byte) boundaries.
+
+Any input that causes the second counter to equal 10 unlocks the program.
+
