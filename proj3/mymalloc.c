@@ -2,14 +2,17 @@
 #include <errno.h>
 #include "mymalloc.h"
 
-static void *mymalloc_memstart = NULL;
-static int mymalloc_nodes = 0;
+#define PTR_ADD(p,x) ((char*)(p) + (x))
+#define PTR_SUB(p,x) ((char*)(p) - (x))
+
+static void *mymalloc_memstart = NULL; // original brk position cache
+static int mymalloc_nodes = 0; // current number of memory nodes
 
 typedef struct node {
     size_t size;
     char free;
     struct node *next;
-} NODE;
+} NODE; // sizeof(NODE) and gdb say = 12
 
 void *my_worstfit_malloc(int size) {
     NODE *ptr;
@@ -19,7 +22,7 @@ void *my_worstfit_malloc(int size) {
     NODE *traversal = (NODE*)mymalloc_memstart;
     int i;
     
-    if (mymalloc_memstart == NULL) // not assigned
+    if (mymalloc_memstart == NULL) // not yet cached
         mymalloc_memstart = sbrk(0);
 
     
@@ -50,7 +53,7 @@ void *my_worstfit_malloc(int size) {
             *(worstfit_ptr + sizeof(NODE) + size) = freeNode;
             
             newNode.size = worstfit_ptr->size - freeNode.size - sizeof(NODE); 
-            newNode.next = worstfit_ptr + sizeof(NODE) + size; // freeNode
+            newNode.next = PTR_ADD(PTR_ADD(worstfit_ptr,sizeof(NODE)),size); // freeNode
         } else {
             newNode.size = worstfit_ptr->size;
             newNode.next = worstfit_ptr->next;
@@ -80,22 +83,27 @@ void *my_worstfit_malloc(int size) {
         }
         ++mymalloc_nodes;
     }
-    return (ptr + sizeof(NODE));
+    return PTR_ADD(ptr,sizeof(NODE));
 }
 
 void my_free(void *ptr) {
 // TODO dec sbrk if last node is free
 
-    const int MAGIC_SHIFTED_SIZE = 144;
     NODE *prev = NULL;
     NODE *curr = (NODE*)mymalloc_memstart;
     NODE *next = NULL;
     
     // traverse list to find previous node
-    //~ printf("free test: %p == %p, %d\n",curr,ptr-MAGIC_SHIFTED_SIZE,curr==(ptr-MAGIC_SHIFTED_SIZE));
-    while (curr != (ptr-MAGIC_SHIFTED_SIZE) && curr != NULL) {
+    
+    /********************************
+     * debug printer
+     * *****************************/
+//    printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
+
+    while (curr != (PTR_SUB(ptr,sizeof(NODE))) && curr != NULL) {
         prev = curr;
         curr = curr->next;
+//        printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
     }
     
     if (curr == NULL) { // failed to find ptr in list
@@ -115,7 +123,7 @@ void my_free(void *ptr) {
     
     if (next != NULL && next->free) {
         // combine next and curr
-        curr->size = curr->size + next->size +sizeof(NODE);
+        curr->size = curr->size + next->size + sizeof(NODE);
         curr->next = next->next;
         --mymalloc_nodes;
     }

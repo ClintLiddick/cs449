@@ -12,6 +12,8 @@ bin/
 .settings/
 .project
 .classpath
+.cproject
+*.geany
 
 # Libraries
 *.lib
@@ -22,6 +24,7 @@ bin/
 *.so
 *.so.*
 *.dylib
+*.o
 
 # Executables
 *.exe
@@ -30,3 +33,4 @@ bin/
 *.i*86
 *.x86_64
 *.hex
+
