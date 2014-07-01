@@ -6,7 +6,7 @@ OBJS := $(patsubst %.c,%.o,$(SRCFILES))
 OUT_EXE := driver
 # := means immediate assignment, = means delayed assignment
 
-build: $(OBJS) $(OUT_EXE)
+all: $(OBJS) $(OUT_EXE)
 
 driver: driver.o mymalloc.o
 	$(CC) $(CFLAGS) $^ -o $@

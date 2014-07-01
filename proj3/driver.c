@@ -3,8 +3,8 @@
 #include "mymalloc.h"
 
 int main() {
-    const int MAX_MEM = 1000;
-    const int TESTS = 5;
+    const int MAX_MEM = 5000;
+    const int TESTS = 10;
     char *data[TESTS];
     int i, j;
     
@@ -23,12 +23,10 @@ int main() {
         printf("assignments for %d complete\n",i);
         
     }
-    for (i=0; i<TESTS; ++i) {
+    for (i=TESTS-1; i>=0; --i) {
         printf("beginning freeing %d...\n",i);
         my_free(data[i]);
     }
-    
-    
-    
+
     return 0;
 }

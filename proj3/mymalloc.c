@@ -5,6 +5,8 @@
 #define PTR_ADD(p,x) ((char*)(p) + (x))
 #define PTR_SUB(p,x) ((char*)(p) - (x))
 
+#define DEBUG
+
 static void *mymalloc_memstart = NULL; // original brk position cache
 static int mymalloc_nodes = 0; // current number of memory nodes
 
@@ -22,8 +24,12 @@ void *my_worstfit_malloc(int size) {
     NODE *traversal = (NODE*)mymalloc_memstart;
     int i;
     
-    if (mymalloc_memstart == NULL) // not yet cached
+    if (mymalloc_memstart == NULL) { // not yet cached
         mymalloc_memstart = sbrk(0);
+#ifdef DEBUG
+        printf("---beginning of heap: %d---\n",mymalloc_memstart);
+#endif
+    }
 
     
     ptr = (NODE*)mymalloc_memstart;
@@ -87,23 +93,21 @@ void *my_worstfit_malloc(int size) {
 }
 
 void my_free(void *ptr) {
-// TODO dec sbrk if last node is free
-
     NODE *prev = NULL;
     NODE *curr = (NODE*)mymalloc_memstart;
     NODE *next = NULL;
-    
-    // traverse list to find previous node
-    
-    /********************************
-     * debug printer
-     * *****************************/
-//    printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
 
+#ifdef DEBUG
+    printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
+#endif
+
+    // traverse list to find previous node
     while (curr != (PTR_SUB(ptr,sizeof(NODE))) && curr != NULL) {
         prev = curr;
         curr = curr->next;
-//        printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
+#ifdef DEBUG
+        printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
+#endif
     }
     
     if (curr == NULL) { // failed to find ptr in list
@@ -129,4 +133,20 @@ void my_free(void *ptr) {
     }
     
     curr->free = 1;
+
+    // find end of list
+    while (curr->next != NULL) {
+    	prev = curr;
+    	curr = curr->next;
+    }
+
+#ifdef DEBUG
+    printf("end of heap: %d\n",curr);
+#endif
+    if (curr->free) {
+    	if (prev != NULL)
+    		prev->next = NULL;
+    	--mymalloc_nodes;
+    	sbrk(-(curr->size + sizeof(NODE)));
+    }
 }
