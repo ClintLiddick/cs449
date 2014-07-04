@@ -1,24 +1,22 @@
 #include <unistd.h>
-#include <errno.h>
+#include <stdlib.h>
 #include "mymalloc.h"
 
 #define PTR_ADD(p,x) ((char*)(p) + (x))
 #define PTR_SUB(p,x) ((char*)(p) - (x))
 
-#define DEBUG
-
-static void *mymalloc_memstart = NULL; // original brk position cache
-static int mymalloc_nodes = 0; // current number of memory nodes
-
 typedef struct node {
     size_t size;
     char free;
     struct node *next;
-} NODE; // sizeof(NODE) and gdb say = 12
+} NODE;
 
 static NODE *prev_node(NODE*);
 static NODE *coalesce(NODE*);
 static NODE *biggest_node();
+
+static void *mymalloc_memstart = NULL; // original brk position cache
+static int mymalloc_nodes = 0; // current number of memory nodes
 
 void *my_worstfit_malloc(int size) {
     NODE *ptr;
@@ -26,7 +24,6 @@ void *my_worstfit_malloc(int size) {
     NODE freeNode;
     NODE *worstfit_ptr = NULL;
     NODE *traversal = (NODE*)mymalloc_memstart;
-    int i;
     
     if (mymalloc_memstart == NULL) { // not yet cached
         mymalloc_memstart = sbrk(0);
@@ -37,24 +34,15 @@ void *my_worstfit_malloc(int size) {
 
     
     ptr = (NODE*)mymalloc_memstart;
-    worstfit_ptr = (NODE*)mymalloc_memstart;
-    
-    // find biggest NODE
-    for(i=0; i<mymalloc_nodes; ++i) {
-        if (ptr->free == 1 && ptr->size > worstfit_ptr->size) {
-            // possible match
-            worstfit_ptr = ptr;
-        }
-        ptr = ptr->next;
-    }
+    worstfit_ptr = biggest_node();
     
     // make sure there was at least a single valid free node
-    if (mymalloc_nodes > 0 && worstfit_ptr->free == 1 && worstfit_ptr->size >= size) {
+    if (mymalloc_nodes > 0 && worstfit_ptr != NULL && worstfit_ptr->free == 1 && worstfit_ptr->size >= size) {
         // break node into 2 pieces and assign
         
         // store new free node info
-        if (worstfit_ptr->size - size > sizeof(NODE)) { 
-        // new free node would have free space
+        if ((worstfit_ptr->size - size > sizeof(NODE)) > 0) {
+        // check if new free node would have usable free space
             ++mymalloc_nodes;
             freeNode.size = worstfit_ptr->size - size - sizeof(NODE);  // leftover is free
             freeNode.free = 1;
@@ -71,13 +59,16 @@ void *my_worstfit_malloc(int size) {
         newNode.free = 0;
         *worstfit_ptr = newNode;
         ptr = worstfit_ptr; // set return value
+
     } else { // need new sbrk allocation
         newNode.size = size;
         newNode.free = 0;
         newNode.next = NULL;
         ptr = (NODE*)sbrk(size + sizeof(NODE));
         if ((int)ptr == -1) {
-            printf("error alloc mem\n");
+#ifdef DEBUG
+            printf("error allocating memory\n");
+#endif
             exit(1);
         }
         
@@ -127,6 +118,9 @@ static NODE *biggest_node() {
 	NODE * biggest = (NODE *) mymalloc_memstart;
 
 	if (mymalloc_memstart == NULL)
+		return NULL;
+
+	if (mymalloc_nodes < 1)
 		return NULL;
 
 	while (curr != NULL) {
