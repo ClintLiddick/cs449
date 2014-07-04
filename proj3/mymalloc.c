@@ -16,6 +16,10 @@ typedef struct node {
     struct node *next;
 } NODE; // sizeof(NODE) and gdb say = 12
 
+static NODE *prev_node(NODE*);
+static NODE *coalesce(NODE*);
+static NODE *biggest_node();
+
 void *my_worstfit_malloc(int size) {
     NODE *ptr;
     NODE newNode;
@@ -27,7 +31,7 @@ void *my_worstfit_malloc(int size) {
     if (mymalloc_memstart == NULL) { // not yet cached
         mymalloc_memstart = sbrk(0);
 #ifdef DEBUG
-        printf("---beginning of heap: %d---\n",mymalloc_memstart);
+        printf("---beginning of heap: %d---\n",(int)mymalloc_memstart);
 #endif
     }
 
@@ -59,7 +63,7 @@ void *my_worstfit_malloc(int size) {
             *(worstfit_ptr + sizeof(NODE) + size) = freeNode;
             
             newNode.size = worstfit_ptr->size - freeNode.size - sizeof(NODE); 
-            newNode.next = PTR_ADD(PTR_ADD(worstfit_ptr,sizeof(NODE)),size); // freeNode
+            newNode.next = (NODE*)PTR_ADD(PTR_ADD(worstfit_ptr,sizeof(NODE)),size); // freeNode
         } else {
             newNode.size = worstfit_ptr->size;
             newNode.next = worstfit_ptr->next;
@@ -72,7 +76,7 @@ void *my_worstfit_malloc(int size) {
         newNode.free = 0;
         newNode.next = NULL;
         ptr = (NODE*)sbrk(size + sizeof(NODE));
-        if (ptr == -1) {
+        if ((int)ptr == -1) {
             printf("error alloc mem\n");
             exit(1);
         }
@@ -94,59 +98,85 @@ void *my_worstfit_malloc(int size) {
 
 void my_free(void *ptr) {
     NODE *prev = NULL;
-    NODE *curr = (NODE*)mymalloc_memstart;
-    NODE *next = NULL;
+    NODE *curr = NULL;
 
-#ifdef DEBUG
-    printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
-#endif
+    if (ptr == NULL)
+    	return;
 
-    // traverse list to find previous node
-    while (curr != (PTR_SUB(ptr,sizeof(NODE))) && curr != NULL) {
-        prev = curr;
-        curr = curr->next;
-#ifdef DEBUG
-        printf("free test: %p == %p, %d\n",curr,PTR_SUB(ptr,sizeof(NODE)),curr==PTR_SUB(ptr,sizeof(NODE)));
-#endif
-    }
-    
-    if (curr == NULL) { // failed to find ptr in list
-        printf("ERROR: failed to find ptr in list\n");
-        exit(1); // diehard TODO better?
-    }
-    
-    next = curr->next;
-    
-    if (prev != NULL && prev->free) {
-        // combine prev and curr
-        prev->size = curr->size + prev->size + sizeof(NODE);
-        prev->next = curr->next;
-        curr = prev;
-        --mymalloc_nodes;
-    }
-    
-    if (next != NULL && next->free) {
-        // combine next and curr
-        curr->size = curr->size + next->size + sizeof(NODE);
-        curr->next = next->next;
-        --mymalloc_nodes;
-    }
-    
+    curr = (NODE*) PTR_SUB(ptr,sizeof(NODE));
+
     curr->free = 1;
+    curr = coalesce(curr);
 
-    // find end of list
-    while (curr->next != NULL) {
-    	prev = curr;
-    	curr = curr->next;
+    if (curr->next == NULL) { // end of heap list
+    	prev = prev_node(curr);
+    	if (prev != NULL)
+    		prev->next = NULL; // term list at prev if there is more than one node
+
+    	sbrk(-(curr->size + sizeof(NODE)));
+    	--mymalloc_nodes;
     }
 
 #ifdef DEBUG
-    printf("end of heap: %d\n",curr);
+    printf("end of heap: %d\n",(int)curr);
 #endif
-    if (curr->free) {
-    	if (prev != NULL)
-    		prev->next = NULL;
-    	--mymalloc_nodes;
-    	sbrk(-(curr->size + sizeof(NODE)));
-    }
+}
+
+static NODE *biggest_node() {
+	NODE * curr = (NODE*) mymalloc_memstart;
+	NODE * biggest = (NODE *) mymalloc_memstart;
+
+	if (mymalloc_memstart == NULL)
+		return NULL;
+
+	while (curr != NULL) {
+		if (curr->size > biggest->size) {
+			biggest = curr;
+		}
+		curr = curr->next;
+	}
+	return biggest;
+}
+
+static NODE *coalesce(NODE *ptr) {
+	NODE *prev = NULL;
+	NODE *next = NULL;
+
+	if (ptr == NULL)
+		return NULL;
+
+	// nothing to coalesce
+	if (!ptr->free)
+		return ptr;
+
+	next = ptr->next;
+
+	prev = prev_node(ptr);
+
+	if (prev != NULL && prev->free) {
+		prev->size += sizeof(NODE) + ptr->size; // coalesce both free spaces and separating node
+		prev->next = ptr->next;
+		ptr = prev;
+		--mymalloc_nodes;
+	}
+
+	if (next != NULL && next->free) {
+		ptr->size += sizeof(NODE) + next->size;
+		ptr->next = next->next;
+		--mymalloc_nodes;
+	}
+	// TODO add shrinking
+	return ptr;
+}
+
+static NODE *prev_node(NODE *ptr) {
+	NODE *prev = mymalloc_memstart;
+
+	if (ptr == NULL || prev == NULL)
+		return NULL;
+
+	while (prev != NULL && prev->next != ptr)
+		prev = prev->next;
+
+	return prev;
 }
