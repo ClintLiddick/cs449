@@ -3,6 +3,12 @@
 #include <time.h>
 #include "mymalloc.h"
 
+/**
+ * This program randomly allocates 10 char arrays of up to 5000 elements,
+ * assigns each position, and then randomly frees the array immediately,
+ * or at the end where all remaining arrays are freed
+ */
+
 int main() {
     const int MAX_MEM = 5000;
     const int TESTS = 10;
@@ -16,10 +22,10 @@ int main() {
     
     for (i=0; i<TESTS; ++i) {
     	mem = rand() % MAX_MEM;
-        printf("allocating memory %d: %d bytes...\n",i,mem);
+        printf("allocating array %d: %d bytes...\n",i,mem);
         data[i] = (char*) my_worstfit_malloc(mem*sizeof(char));
         if (data[i] == NULL) {
-            printf("FAIL: unable to allocate memory %d\n",i);
+            printf("FAIL: unable to allocate array %d\n",i);
             exit(1);
         }
         freed[i] = 0;
@@ -29,7 +35,7 @@ int main() {
             data[i][j] = 'a';
         }
         printf("assignments for %d complete\n",i);
-        if (mem%2 == 0) {
+        if (mem % 2 == 0) {
     		printf("freeing %d...\n",i);
     		my_free(data[i]);
     		freed[i] = 1;

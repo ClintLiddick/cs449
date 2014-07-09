@@ -159,7 +159,6 @@ static NODE *coalesce(NODE *ptr) {
 		ptr->next = next->next;
 		--mymalloc_nodes;
 	}
-	// TODO add shrinking
 	return ptr;
 }
 

@@ -1,0 +1,23 @@
+Clinton Liddick	  
+CS0499 - Project 3
+07/09/14	  
+*******************
+
+FILES
+-----
+mymalloc.h
+mymalloc.c
+driver.c - my personal test program
+mallocdrv.c - provided test program
+Makefile
+README
+
+MAKE
+----
+make 		# compile both drivers and the mymalloc program
+make debug 	# compile both drivers and the mymalloc program with debug
+		printfs	and -g option. requires a make clean first. please
+		note that DEBUG causes "implicit declaration" warnings
+make clean 	# compile remove all objects and executbles
+
+
